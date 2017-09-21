@@ -37,6 +37,7 @@
 
 #include "DepthMap.h"
 #include "Mesh.h"
+#include <memory>
 
 
 // D E F I N E S ///////////////////////////////////////////////////
@@ -46,6 +47,7 @@
 
 namespace MVS {
 
+	struct MVS_API DenseDepthMapData;
 class MVS_API Scene
 {
 public:
@@ -58,6 +60,9 @@ public:
 
 	unsigned nMaxThreads; // maximum number of threads used to distribute the work load
 
+
+    //ljp
+    std::shared_ptr<DenseDepthMapData> pdata;
 public:
 	inline Scene(unsigned _nMaxThreads=0) : nMaxThreads(Thread::getMaxThreads(_nMaxThreads)) {}
 
@@ -107,7 +112,59 @@ public:
 	#endif
 };
 /*----------------------------------------------------------------*/
+	class MVS_API DepthMapsData
+	{
+	public:
+		DepthMapsData(Scene& _scene);
+		~DepthMapsData();
 
+		bool SelectViews(IndexArr& images, IndexArr& imagesMap, IndexArr& neighborsMap);
+		bool SelectViews(DepthData& depthData);
+		bool InitViews(DepthData& depthData, uint32_t idxNeighbor, uint32_t numNeighbors);
+		bool InitDepthMap(DepthData& depthData);
+		bool EstimateDepthMap(uint32_t idxImage);
+
+		bool RemoveSmallSegments(DepthData& depthData);
+		bool GapInterpolation(DepthData& depthData);
+
+		bool FilterDepthMap(DepthData& depthData, const IndexArr& idxNeighbors, bool bAdjust=true);
+		void FuseDepthMaps(PointCloud& pointcloud, bool bEstimateNormal);
+
+	protected:
+		static void* STCALL ScoreDepthMapTmp(void*);
+		static void* STCALL EstimateDepthMapTmp(void*);
+		static void* STCALL EndDepthMapTmp(void*);
+
+	public:
+		Scene& scene;
+
+		DepthDataArr arrDepthData;
+
+		// used internally to estimate the depth-maps
+		Image8U::Size prevDepthMapSize; // remember the size of the last estimated depth-map
+		Image8U::Size prevDepthMapSizeTrg; // ... same for target image
+		DepthEstimator::MapRefArr coords; // map pixel index to zigzag matrix coordinates
+		DepthEstimator::MapRefArr coordsTrg; // ... same for target image
+	};
+    struct MVS_API DenseDepthMapData {
+        Scene& scene;
+        IndexArr images;
+        IndexArr neighborsMap;
+        DepthMapsData detphMaps;
+        volatile Thread::safe_t idxImage;
+        SEACAVE::EventQueue events; // internal events queue (processed by the working threads)
+        Semaphore sem;
+        CAutoPtr<Util::Progress> progress;
+
+        DenseDepthMapData(Scene& _scene)
+                : scene(_scene), detphMaps(_scene), idxImage(0), sem(1) {}
+
+        void SignalCompleteDepthmapFilter() {
+            ASSERT(idxImage > 0);
+            if (Thread::safeDec(idxImage) == 0)
+                sem.Signal((unsigned)images.GetSize()*2);
+        }
+    };
 } // namespace MVS
 
 #endif // _MVS_SCENE_H_

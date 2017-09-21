@@ -122,40 +122,40 @@ public:
 // S T R U C T S ///////////////////////////////////////////////////
 
 // structure used to compute all depth-maps
-class DepthMapsData
-{
-public:
-	DepthMapsData(Scene& _scene);
-	~DepthMapsData();
-
-	bool SelectViews(IndexArr& images, IndexArr& imagesMap, IndexArr& neighborsMap);
-	bool SelectViews(DepthData& depthData);
-	bool InitViews(DepthData& depthData, uint32_t idxNeighbor, uint32_t numNeighbors);
-	bool InitDepthMap(DepthData& depthData);
-	bool EstimateDepthMap(uint32_t idxImage);
-
-	bool RemoveSmallSegments(DepthData& depthData);
-	bool GapInterpolation(DepthData& depthData);
-
-	bool FilterDepthMap(DepthData& depthData, const IndexArr& idxNeighbors, bool bAdjust=true);
-	void FuseDepthMaps(PointCloud& pointcloud, bool bEstimateNormal);
-
-protected:
-	static void* STCALL ScoreDepthMapTmp(void*);
-	static void* STCALL EstimateDepthMapTmp(void*);
-	static void* STCALL EndDepthMapTmp(void*);
-
-public:
-	Scene& scene;
-
-	DepthDataArr arrDepthData;
-
-	// used internally to estimate the depth-maps
-	Image8U::Size prevDepthMapSize; // remember the size of the last estimated depth-map
-	Image8U::Size prevDepthMapSizeTrg; // ... same for target image
-	DepthEstimator::MapRefArr coords; // map pixel index to zigzag matrix coordinates
-	DepthEstimator::MapRefArr coordsTrg; // ... same for target image
-};
+//class DepthMapsData
+//{
+//public:
+//	DepthMapsData(Scene& _scene);
+//	~DepthMapsData();
+//
+//	bool SelectViews(IndexArr& images, IndexArr& imagesMap, IndexArr& neighborsMap);
+//	bool SelectViews(DepthData& depthData);
+//	bool InitViews(DepthData& depthData, uint32_t idxNeighbor, uint32_t numNeighbors);
+//	bool InitDepthMap(DepthData& depthData);
+//	bool EstimateDepthMap(uint32_t idxImage);
+//
+//	bool RemoveSmallSegments(DepthData& depthData);
+//	bool GapInterpolation(DepthData& depthData);
+//
+//	bool FilterDepthMap(DepthData& depthData, const IndexArr& idxNeighbors, bool bAdjust=true);
+//	void FuseDepthMaps(PointCloud& pointcloud, bool bEstimateNormal);
+//
+//protected:
+//	static void* STCALL ScoreDepthMapTmp(void*);
+//	static void* STCALL EstimateDepthMapTmp(void*);
+//	static void* STCALL EndDepthMapTmp(void*);
+//
+//public:
+//	Scene& scene;
+//
+//	DepthDataArr arrDepthData;
+//
+//	// used internally to estimate the depth-maps
+//	Image8U::Size prevDepthMapSize; // remember the size of the last estimated depth-map
+//	Image8U::Size prevDepthMapSizeTrg; // ... same for target image
+//	DepthEstimator::MapRefArr coords; // map pixel index to zigzag matrix coordinates
+//	DepthEstimator::MapRefArr coordsTrg; // ... same for target image
+//};
 /*----------------------------------------------------------------*/
 
 
@@ -1478,31 +1478,34 @@ void DepthMapsData::FuseDepthMaps(PointCloud& pointcloud, bool bEstimateNormal)
 
 // S T R U C T S ///////////////////////////////////////////////////
 
-struct DenseDepthMapData {
-	Scene& scene;
-	IndexArr images;
-	IndexArr neighborsMap;
-	DepthMapsData detphMaps;
-	volatile Thread::safe_t idxImage;
-	SEACAVE::EventQueue events; // internal events queue (processed by the working threads)
-	Semaphore sem;
-	CAutoPtr<Util::Progress> progress;
-
-	DenseDepthMapData(Scene& _scene)
-		: scene(_scene), detphMaps(_scene), idxImage(0), sem(1) {}
-
-	void SignalCompleteDepthmapFilter() {
-		ASSERT(idxImage > 0);
-		if (Thread::safeDec(idxImage) == 0)
-			sem.Signal((unsigned)images.GetSize()*2);
-	}
-};
+//struct DenseDepthMapData {
+//	Scene& scene;
+//	IndexArr images;
+//	IndexArr neighborsMap;
+//	DepthMapsData detphMaps;
+//	volatile Thread::safe_t idxImage;
+//	SEACAVE::EventQueue events; // internal events queue (processed by the working threads)
+//	Semaphore sem;
+//	CAutoPtr<Util::Progress> progress;
+//
+//	DenseDepthMapData(Scene& _scene)
+//		: scene(_scene), detphMaps(_scene), idxImage(0), sem(1) {}
+//
+//	void SignalCompleteDepthmapFilter() {
+//		ASSERT(idxImage > 0);
+//		if (Thread::safeDec(idxImage) == 0)
+//			sem.Signal((unsigned)images.GetSize()*2);
+//	}
+//};
 
 static void* DenseReconstructionEstimateTmp(void*);
 static void* DenseReconstructionFilterTmp(void*);
 bool Scene::DenseReconstruction()
 {
-	DenseDepthMapData data(*this);
+	//ljp
+	//DenseDepthMapData data(*this);
+	pdata = std::make_shared<DenseDepthMapData>(*this);
+	DenseDepthMapData& data = *pdata;
 
 	{
 	// maps global view indices to our list of views to be processed

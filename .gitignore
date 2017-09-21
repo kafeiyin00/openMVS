@@ -28,3 +28,9 @@
 *.app
 
 build_my/
+
+cmake-build-debug/
+
+cmake-build-release/
+
+\.idea/
