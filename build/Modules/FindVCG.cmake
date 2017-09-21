@@ -2,12 +2,14 @@
 #                  Find VCG Library
 #----------------------------------------------------------
 
-find_path(VCG_DIR "vcg/complex/complex.h"
-    HINTS "${VCG_ROOT}" "$ENV{VCG_ROOT}"
-    PATHS "$ENV{PROGRAMFILES}" "$ENV{PROGRAMW6432}" "/usr" "/usr/local" "/usr/share" "/usr/local/share" "/usr/lib/x86_64-linux-gnu/cmake"
-    PATH_SUFFIXES "vcg" "include"
-    DOC "Root directory of VCG library")
+#find_path(VCG_DIR "vcg/complex/complex.h"
+#    HINTS "${VCG_ROOT}" "$ENV{VCG_ROOT}"
+#    PATHS  ${PROJECT_SOURCE_DIR}/thirdparties/vcglib
+#    PATH_SUFFIXES "vcg" "include"
+#    DOC "Root directory of VCG library")
+#message("VCG:: ${PROJECT_SOURCE_DIR}/thirdparties/vcglib")
 
+set(VCG_DIR ${PROJECT_SOURCE_DIR}/thirdparties/vcglib)
 ##====================================================
 ## Include VCG library
 ##----------------------------------------------------

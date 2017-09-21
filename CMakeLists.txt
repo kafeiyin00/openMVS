@@ -77,6 +77,8 @@ if(OpenMVS_USE_OPENGL)
 	endif()
 endif()
 
+SET(OpenMVS_USE_CUDA OFF)
+
 if(OpenMVS_USE_CUDA)
 	FIND_PACKAGE(CUDA)
 	if(CUDA_FOUND)
